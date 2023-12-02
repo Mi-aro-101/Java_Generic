@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.sql.DriverManager;
+import java.util.Map;
 
 /**
  *
@@ -16,7 +17,7 @@ import java.sql.DriverManager;
  */
 public class GenericDac {
     
-    static final HashMap<String, String> dbClassDriver = new HashMap<>();
+    static final Map<String, String> dbClassDriver = new HashMap<>();
     static{
         dbClassDriver.put("psql", "org.postgresql.Driver");
         dbClassDriver.put("orcl", "oracle.jdbc.OracleDriver");
@@ -50,8 +51,9 @@ public class GenericDac {
      * @return
      * @throws Exception 
      */
-    public static HashMap<String, String> extract(String[] datas)throws Exception{
-        HashMap<String, String> results = new HashMap<>();
+    public static Map<String, String> extract()throws Exception{
+        String[] datas = getDatasFromFile();
+        Map<String, String> results = new HashMap<>();
         
         for(String props : datas){
             String[] keyvalue = props.split("=");
@@ -59,16 +61,14 @@ public class GenericDac {
         }
         
         return results;
-    }
-    
+    }    
     /**
      * Generate a Connection based on Hashmap => < db_props_name, value_db_props >
      * @return Connection having the properties you gave
      * @throws Exception 
      */
     public static Connection generate()throws Exception{
-        String[] datas = getDatasFromFile();
-        HashMap<String, String> dbprops = extract(datas);
+        Map<String, String> dbprops = extract();
         Connection connection = null;
        
         String dbTypeProps = dbprops.get("db.type");

@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.function.Function;
 import org.miframework.generic.GenericDao;
 import java.sql.Timestamp;
+import java.util.Date;
+import org.miframework.generic.GenericDac;
 
 /**
  *
@@ -191,6 +193,7 @@ public class DaoHelper {
         int size = getColumnLengths(o.getClass().getDeclaredFields());
         String[] results = new String[size];
         int i = 0;
+        Map<String, String> connectionProps = GenericDac.extract();
         
         for(Field field : o.getClass().getDeclaredFields()){
             if(field.isAnnotationPresent(Column.class)){
@@ -199,10 +202,18 @@ public class DaoHelper {
                         continue;
                     }
                     else if(field.getAnnotation(Pk.class).generation() == GenerationType.SEQ){
-                        String seqName = field.getAnnotation(Pk.class).sequence();
-                        results[i] = "nextval('"+ seqName +"')";
-                        i++;
-                        continue;
+                        if("psql".equals(connectionProps.get("db.type"))){
+                            String seqName = field.getAnnotation(Pk.class).sequence();
+                            results[i] = "nextval('"+ seqName +"')";
+                            i++;
+                            continue;
+                        }
+                        else if("orcl".equals(connectionProps.get("db.type"))){
+                            String seqName = field.getAnnotation(Pk.class).sequence();
+                            results[i] = ""+ seqName +".nextval)";
+                            i++;
+                            continue;
+                        }
                     }
                 }
                 String fieldName = field.getName();
@@ -210,6 +221,8 @@ public class DaoHelper {
                 Method getter = o.getClass().getMethod("get"+fieldName, (Class<?>[]) null);
                 String fieldValue = getter.invoke(o).toString();
                 results[i] = "'"+fieldValue+"'";
+                if(field.getType() == LocalDate.class || field.getType() == Date.class)
+                    results[i] = " TO_DATE('yyyy-MM-dd', '"+fieldValue+"')";
                 i++;
             }
             else if(field.isAnnotationPresent(Fk.class)){
