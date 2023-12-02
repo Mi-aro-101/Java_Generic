@@ -64,6 +64,7 @@ public class DaoHelper {
      * Get all setters annotated in the object in assign the rs in each
      * @param obj
      * @param rs ResultSet of the select
+     * @param c
      * @throws Exception 
      */
     public static void select(Object obj, ResultSet rs, Connection c)throws Exception{        
